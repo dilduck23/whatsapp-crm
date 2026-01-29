@@ -40,7 +40,7 @@ export default function Home() {
           table: 'messages',
         },
         (payload) => {
-          console.log('📩 Nuevo mensaje recibido:', payload.new)
+          console.log('Nuevo mensaje recibido:', payload.new)
           handleNewMessage(payload.new)
         }
       )
@@ -52,7 +52,7 @@ export default function Home() {
           table: 'messages',
         },
         (payload) => {
-          console.log('📊 Mensaje actualizado:', payload.new)
+          console.log('Mensaje actualizado:', payload.new)
           handleMessageUpdate(payload.new)
         }
       )
@@ -157,9 +157,9 @@ export default function Home() {
   }
 
   return (
-    <main className="flex h-screen bg-whatsapp-bg">
+    <main className="flex h-screen w-screen overflow-hidden bg-whatsapp-bg">
       {/* Sidebar con lista de contactos */}
-      <aside className="w-[400px] min-w-[300px] max-w-[500px] border-r border-whatsapp-border flex flex-col">
+      <aside className="w-[30%] min-w-[320px] max-w-[420px] h-full border-r border-whatsapp-border flex flex-col bg-whatsapp-bg">
         <ContactList
           contacts={contacts}
           selectedContact={selectedContact}
@@ -168,12 +168,14 @@ export default function Home() {
       </aside>
 
       {/* Ventana de chat */}
-      <ChatWindow
-        contact={selectedContact}
-        messages={messages}
-        onSendMessage={handleSendMessage}
-        isLoading={isSending}
-      />
+      <section className="flex-1 h-full flex flex-col">
+        <ChatWindow
+          contact={selectedContact}
+          messages={messages}
+          onSendMessage={handleSendMessage}
+          isLoading={isSending}
+        />
+      </section>
     </main>
   )
 }
