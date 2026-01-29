@@ -1,180 +1,253 @@
 # Guía de Configuración - WhatsApp CRM
 
-## Estado Actual
+## 🎯 Estado Actual del Proyecto
+
 - [x] Proyecto Next.js creado
-- [x] Código del frontend y backend listo
-- [ ] **Pendiente: Verificación de Business en Meta**
-- [ ] Configurar variables de entorno
-- [ ] Ejecutar SQL en Supabase
-- [ ] Deploy en Vercel
-- [ ] Conectar Webhook
+- [x] Código del frontend y backend completo
+- [x] Tablas creadas en Supabase
+- [x] Proyecto subido a GitHub
+- [x] Deploy en Vercel completado
+- [x] Variables de entorno de Supabase configuradas
+- [x] Phone Number ID configurado
+- [x] Token de verificación del webhook configurado
+- [ ] **⏳ PENDIENTE: Obtener Token de WhatsApp de Meta (esperando verificación)**
+- [ ] **⏳ PENDIENTE: Configurar webhook en Meta**
 
 ---
 
-## Paso 1: Supabase (Puedes hacerlo mientras esperas)
+## 🔗 Enlaces del Proyecto
 
-### 1.1 Crear proyecto en Supabase
-1. Ve a [supabase.com](https://supabase.com) y crea una cuenta
-2. Click en **New Project**
-3. Elige un nombre y contraseña para la base de datos
-4. Selecciona la región más cercana a ti
-
-### 1.2 Ejecutar el SQL
-1. En tu proyecto de Supabase, ve a **SQL Editor** (menú izquierdo)
-2. Click en **New Query**
-3. Copia todo el contenido del archivo `supabase.sql` de este proyecto
-4. Click en **Run** (o Ctrl+Enter)
-5. Deberías ver: "Success. No rows returned"
-
-### 1.3 Obtener credenciales
-1. Ve a **Settings** > **API** (menú izquierdo)
-2. Copia estos valores:
-   - **Project URL** → será tu `NEXT_PUBLIC_SUPABASE_URL`
-   - **anon public** key → será tu `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-### 1.4 Verificar Realtime
-1. Ve a **Database** > **Replication**
-2. Asegúrate de que las tablas `contacts` y `messages` tienen Realtime habilitado
-3. Si no aparecen, ejecuta de nuevo las líneas del SQL que dicen `ALTER PUBLICATION`
+- **GitHub:** https://github.com/dilduck23/whatsapp-crm
+- **Vercel Dashboard:** https://vercel.com/carlos-projects-a7fa7a21/whatsapp-crm
+- **URL de Producción:** https://whatsapp-crm-red.vercel.app
+- **URL del Webhook:** https://whatsapp-crm-red.vercel.app/api/webhook
 
 ---
 
-## Paso 2: Meta for Developers (Cuando la verificación esté lista)
+## 📋 Próximos Pasos
 
-### 2.1 Acceder a la configuración de WhatsApp
-1. Ve a [developers.facebook.com](https://developers.facebook.com)
-2. Accede a tu App
-3. En el menú izquierdo: **WhatsApp** > **API Setup**
+### Paso 1: Obtener Token de WhatsApp (Cuando Meta apruebe)
 
-### 2.2 Obtener credenciales
-Desde la página de API Setup, copia:
+Una vez que Meta apruebe tu verificación de Business:
 
-| Campo en Meta | Variable en .env.local |
-|---------------|------------------------|
-| **Phone number ID** | `WHATSAPP_PHONE_NUMBER_ID` |
-| **Temporary access token** o **Permanent token** | `WHATSAPP_TOKEN` |
+1. **Ve a Meta Developers:**
+   - URL: https://developers.facebook.com
+   - Accede a tu App
+   - Menu: **WhatsApp** > **API Setup**
 
-> **Nota:** El token temporal expira en 24h. Para producción necesitarás un token permanente (System User Token).
+2. **Obtener el Access Token:**
+   - Busca la sección "Temporary access token" o "Access token"
+   - Copia el token (empieza con `EAA...`)
 
-### 2.3 Crear tu token de verificación
-Inventa un token secreto para verificar el webhook. Ejemplo:
+   > ⚠️ **Nota:** El token temporal expira en 24h. Para producción necesitas crear un **System User Token** permanente desde **Business Settings**.
+
+3. **Actualizar en Vercel:**
+
+   Opción A - Desde CLI (recomendado):
+   ```bash
+   vercel env rm WHATSAPP_TOKEN production
+   vercel env add WHATSAPP_TOKEN production
+   # Pega tu token cuando te lo pida
+   ```
+
+   Opción B - Desde la web:
+   - Ve a: https://vercel.com/carlos-projects-a7fa7a21/whatsapp-crm/settings/environment-variables
+   - Busca `WHATSAPP_TOKEN`
+   - Click en los tres puntos > **Edit**
+   - Pega tu token nuevo
+   - Click en **Save**
+
+4. **Hacer Redeploy:**
+   ```bash
+   vercel --prod
+   ```
+
+---
+
+### Paso 2: Configurar Webhook en Meta
+
+1. **Ve a la configuración del Webhook:**
+   - Meta Developers > Tu App > **WhatsApp** > **Configuration**
+   - Busca la sección **Webhook**
+   - Click en **Edit**
+
+2. **Completa los campos:**
+   - **Callback URL:** `https://whatsapp-crm-red.vercel.app/api/webhook`
+   - **Verify token:** `webhook_secreto_2024`
+
+3. **Verificar y guardar:**
+   - Click en **Verify and Save**
+   - Deberías ver un mensaje de éxito
+
+4. **Suscribirse a eventos:**
+
+   Activa estos campos (checkboxes):
+   - ✅ `messages` - **OBLIGATORIO** (recibir mensajes)
+   - ✅ `message_deliveries` - Opcional (estado de entrega)
+   - ✅ `message_reads` - Opcional (estado de lectura)
+
+---
+
+### Paso 3: Probar el Sistema
+
+#### 3.1 Probar recepción de mensajes
+
+1. **Desde Meta Developers:**
+   - Ve a WhatsApp > **API Setup**
+   - Sección "Send and receive messages"
+   - Envía un mensaje de prueba a tu número
+
+2. **Responde desde WhatsApp:**
+   - Abre WhatsApp en tu teléfono
+   - Responde al mensaje que recibiste
+
+3. **Verifica en tu CRM:**
+   - Abre: https://whatsapp-crm-red.vercel.app
+   - Deberías ver el contacto y el mensaje aparecer automáticamente
+
+#### 3.2 Probar envío de mensajes
+
+1. En tu CRM, selecciona un contacto
+2. Escribe un mensaje en el input
+3. Click en enviar
+4. El mensaje debería aparecer en tu WhatsApp personal
+
+#### 3.3 Ver logs (si algo falla)
+
+```bash
+vercel logs https://whatsapp-crm-red.vercel.app --follow
 ```
-mi_webhook_secreto_2024
-```
-Este será tu `WHATSAPP_VERIFY_TOKEN`
+
+O desde la web:
+- https://vercel.com/carlos-projects-a7fa7a21/whatsapp-crm/logs
 
 ---
 
-## Paso 3: Configurar Variables de Entorno
+## 🛠️ Configuración Local (Opcional)
 
-### 3.1 Crear archivo .env.local
+Si quieres probar en tu máquina local:
+
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/dilduck23/whatsapp-crm.git
+cd whatsapp-crm
+```
+
+### 2. Instalar dependencias
+```bash
+npm install
+```
+
+### 3. Configurar variables de entorno
+El archivo `.env.local` ya existe con tus credenciales. Si no existe:
 ```bash
 cp .env.local.example .env.local
+# Edita .env.local con tus credenciales
 ```
 
-### 3.2 Editar .env.local
-```env
-# SUPABASE
-NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6...
-
-# WHATSAPP
-WHATSAPP_TOKEN=EAAxxxxx...
-WHATSAPP_PHONE_NUMBER_ID=123456789012345
-WHATSAPP_VERIFY_TOKEN=mi_webhook_secreto_2024
-```
-
----
-
-## Paso 4: Probar Localmente
-
+### 4. Ejecutar en desarrollo
 ```bash
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000)
-
-Deberías ver la interfaz del chat (vacía por ahora).
+Abre http://localhost:3000
 
 ---
 
-## Paso 5: Deploy en Vercel
+## 🔐 Variables de Entorno Configuradas
 
-### 5.1 Subir a GitHub (si no lo has hecho)
-```bash
-git init
-git add .
-git commit -m "Initial commit - WhatsApp CRM"
-git remote add origin https://github.com/tu-usuario/whatsapp-crm.git
-git push -u origin main
-```
-
-### 5.2 Conectar con Vercel
-1. Ve a [vercel.com](https://vercel.com)
-2. Click en **Add New** > **Project**
-3. Importa tu repositorio de GitHub
-4. **IMPORTANTE:** Antes de hacer deploy, añade las variables de entorno:
-   - Click en **Environment Variables**
-   - Añade todas las variables de tu `.env.local`
-5. Click en **Deploy**
-
-### 5.3 Obtener tu URL
-Vercel te dará una URL como:
-```
-https://whatsapp-crm-xxxxx.vercel.app
-```
+| Variable | Estado | Ubicación |
+|----------|--------|-----------|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ Configurada | Vercel + Local |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ Configurada | Vercel + Local |
+| `WHATSAPP_PHONE_NUMBER_ID` | ✅ Configurada | Vercel + Local |
+| `WHATSAPP_VERIFY_TOKEN` | ✅ Configurada (`webhook_secreto_2024`) | Vercel + Local |
+| `WHATSAPP_TOKEN` | ⚠️ Placeholder | **Pendiente actualizar** |
 
 ---
 
-## Paso 6: Conectar Webhook en Meta
-
-### 6.1 Configurar el Webhook
-1. Ve a Meta Developers > Tu App > **WhatsApp** > **Configuration**
-2. En la sección **Webhook**, click en **Edit**
-3. Completa:
-   - **Callback URL:** `https://tu-app.vercel.app/api/webhook`
-   - **Verify token:** El mismo que pusiste en `WHATSAPP_VERIFY_TOKEN`
-4. Click en **Verify and Save**
-
-### 6.2 Suscribirse a eventos
-Después de verificar, activa estos campos de suscripción:
-- [x] `messages` - Para recibir mensajes entrantes
-- [x] `message_deliveries` - Para saber si se entregó (opcional)
-- [x] `message_reads` - Para saber si se leyó (opcional)
-
----
-
-## Paso 7: Probar
-
-### Enviar mensaje de prueba
-1. Desde Meta Developers > WhatsApp > API Setup
-2. Usa la sección **Send Message** para enviar un mensaje a tu número
-3. Responde al mensaje desde tu WhatsApp personal
-4. El mensaje debería aparecer en tu CRM
-
----
-
-## Troubleshooting
+## 🐛 Troubleshooting
 
 ### El webhook no verifica
-- Verifica que la URL sea exactamente `/api/webhook`
-- Confirma que el `WHATSAPP_VERIFY_TOKEN` sea idéntico en ambos lados
-- Revisa los logs en Vercel: **Deployments** > **Functions** > **api/webhook**
+**Síntomas:** Error al configurar el webhook en Meta
 
-### No recibo mensajes
-- Verifica que la suscripción a `messages` esté activa
-- Revisa que Realtime esté habilitado en Supabase
-- Mira los logs de Vercel para ver si llegan los webhooks
+**Soluciones:**
+- Verifica que la URL sea exactamente: `https://whatsapp-crm-red.vercel.app/api/webhook`
+- Confirma que el token sea: `webhook_secreto_2024`
+- Revisa los logs: `vercel logs https://whatsapp-crm-red.vercel.app/api/webhook`
+
+### No recibo mensajes en el CRM
+**Síntomas:** Respondes en WhatsApp pero no aparece en el CRM
+
+**Soluciones:**
+1. Verifica que la suscripción a `messages` esté activa en Meta
+2. Revisa que Realtime esté habilitado en Supabase:
+   - Supabase Dashboard > Database > Replication
+   - Tablas `contacts` y `messages` deben estar en la lista
+3. Mira los logs del webhook:
+   ```bash
+   vercel logs --follow
+   ```
 
 ### Error al enviar mensajes
-- Confirma que el token no haya expirado
-- Verifica el Phone Number ID
-- El número destino debe haber iniciado conversación primero (en sandbox)
+**Síntomas:** "Error sending message" o "WhatsApp API not configured"
+
+**Soluciones:**
+- Confirma que `WHATSAPP_TOKEN` esté configurado correctamente
+- Verifica que el token no haya expirado (tokens temporales duran 24h)
+- Confirma el `WHATSAPP_PHONE_NUMBER_ID`
+- **Importante:** En modo sandbox, el número destino debe haber iniciado la conversación primero
+
+### La página carga pero no muestra contactos
+**Síntomas:** Interfaz carga pero lista de contactos vacía
+
+**Soluciones:**
+1. Verifica las credenciales de Supabase en Vercel
+2. Abre la consola del navegador (F12) y busca errores
+3. Verifica que las tablas existan en Supabase:
+   ```sql
+   SELECT * FROM contacts;
+   SELECT * FROM messages;
+   ```
 
 ---
 
-## Recursos Útiles
+## 📚 Recursos Útiles
 
-- [Documentación WhatsApp Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api)
-- [Documentación Supabase Realtime](https://supabase.com/docs/guides/realtime)
-- [Logs de Vercel](https://vercel.com/docs/observability/runtime-logs)
+### Documentación Oficial
+- [WhatsApp Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api)
+- [Supabase Realtime](https://supabase.com/docs/guides/realtime)
+- [Next.js App Router](https://nextjs.org/docs/app)
+- [Vercel Deployments](https://vercel.com/docs)
+
+### Herramientas de Desarrollo
+- [Vercel CLI Docs](https://vercel.com/docs/cli)
+- [GitHub CLI Docs](https://cli.github.com/)
+
+### Gestión de Tokens
+- [System User Tokens (Meta)](https://developers.facebook.com/docs/development/create-an-app/app-dashboard/system-users/)
+- [Supabase API Keys](https://supabase.com/docs/guides/api#api-keys)
+
+---
+
+## 🚀 Siguientes Mejoras (Futuras)
+
+- [ ] Soporte para imágenes y archivos multimedia
+- [ ] Notificaciones de escritorio
+- [ ] Búsqueda de mensajes
+- [ ] Filtros por estado (leídos/no leídos)
+- [ ] Exportar conversaciones
+- [ ] Respuestas rápidas
+- [ ] Múltiples usuarios (autenticación)
+- [ ] Plantillas de mensajes
+- [ ] Estadísticas y analytics
+
+---
+
+## 📞 Soporte
+
+Si encuentras algún problema:
+1. Revisa los logs de Vercel
+2. Verifica la configuración en Meta Developers
+3. Consulta la documentación oficial de WhatsApp Cloud API
+4. Abre un issue en GitHub: https://github.com/dilduck23/whatsapp-crm/issues
